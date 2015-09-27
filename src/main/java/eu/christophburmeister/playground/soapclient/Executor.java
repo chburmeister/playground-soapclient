@@ -1,35 +1,53 @@
+
 package eu.christophburmeister.playground.soapclient;
 
-import eu.christophburmeister.playground.springboot.gen.CitiesPort;
-import eu.christophburmeister.playground.springboot.gen.CitiesPortService;
-import eu.christophburmeister.playground.springboot.gen.City;
-import eu.christophburmeister.playground.springboot.gen.GetCityByCodeServiceRequest;
-import eu.christophburmeister.playground.springboot.gen.GetCityByCodeServiceResponse;
 
-public class Executor {
+import javax.xml.ws.BindingProvider;
 
-	public void execute() {
+import eu.christophburmeister.playground.schema.cities.GetCityByCodeRequest;
+import eu.christophburmeister.playground.schema.cities.GetCityByCodeResponse;
+import eu.christophburmeister.playground.schema.cities.GetCountryByCityNameRequest;
+import eu.christophburmeister.playground.schema.cities.GetCountryByCityNameResponse;
+import eu.christophburmeister.playground.schema.cities.Cities;
+import eu.christophburmeister.playground.schema.cities.CitiesService;
 
-		GetCityByCodeServiceRequest request = new GetCityByCodeServiceRequest();
+public final class Executor {
 
-		for (int i=0; i<10; i++){
-			request.setCode(16816);
+	private String endpointAdress;
+	
+    public void execute() {
+              
+        CitiesService ss = new CitiesService();
+        Cities port = ss.getCitiesSoap11();  
 
-			CitiesPortService citiesService = new CitiesPortService();
-			CitiesPort port = citiesService.getCitiesPortSoap11();
-			GetCityByCodeServiceResponse response = port.getCityByCodeService(request);
-			City city = response.getCity();
+		BindingProvider bp = (BindingProvider) port;
+		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointAdress);
+        
+		// creating the requests        
+        GetCityByCodeRequest getCityByCodeRequest = new GetCityByCodeRequest();
+        GetCountryByCityNameRequest getCountryByCityNameRequest = new GetCountryByCityNameRequest();
+        
+        // enriching the requests
+        getCityByCodeRequest.setCode(16816);
+        getCountryByCityNameRequest.setCityName("Neuruppin");
+        
+        // invoking the requests and fetching the responses                    
+        GetCityByCodeResponse getCityByCodeResponse = port.getCityByCode(getCityByCodeRequest);
+        GetCountryByCityNameResponse getCountryByCityNameResponse = port.getCountryByCityName(getCountryByCityNameRequest);
+             
+        // 
+        System.out.println(getCityByCodeResponse.getCity().getName());
+        System.out.println(getCountryByCityNameResponse.getCountry());
+        
 
-			System.out.println(city.getName());
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
 
+    }
+
+	public String getEndpointAdress() {
+		return endpointAdress;
 	}
 
+	public void setEndpointAdress(String endpointAdress) {
+		this.endpointAdress = endpointAdress;
+	}
 }
